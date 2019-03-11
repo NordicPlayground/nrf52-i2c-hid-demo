@@ -37,11 +37,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/** @file
-* @brief Example template project.
-* @defgroup nrf_templates_example Example Template
-*
-*/
 #ifndef __DRV_I2C_HID_H__
 #define __DRV_I2C_HID_H__
 

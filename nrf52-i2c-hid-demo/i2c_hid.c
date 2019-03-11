@@ -37,11 +37,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/** @file
-* @brief Example template project.
-* @defgroup nrf_templates_example Example Template
-*
-*/
 #include "i2c_hid.h"
 
 #include "app_util_platform.h"
@@ -492,6 +487,7 @@ static void i2c_hid_req_set_report(uint8_t const * p_val, size_t len)
     uint16_t                   data_reg_addr;
     uint16_t                   rep_length;
     uint8_t                    rep_id;
+
     NRF_LOG_DEBUG("i2c_hid_req_set_report");
 
     if (len < 6)

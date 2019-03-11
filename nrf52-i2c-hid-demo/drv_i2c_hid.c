@@ -37,11 +37,6 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/** @file
-* @brief Example template project.
-* @defgroup nrf_templates_example Example Template
-*
-*/
 #include "drv_i2c_hid.h"
 
 #include "nrf_gpio.h"

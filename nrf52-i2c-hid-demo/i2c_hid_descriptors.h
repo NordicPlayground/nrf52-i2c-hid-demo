@@ -37,19 +37,14 @@
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-/** @file
-* @brief Example template project.
-* @defgroup nrf_templates_example Example Template
-*
-*/
 #ifndef __I2C_HID_DESCRIPTORS_H__
 #define __I2C_HID_DESCRIPTORS_H__
 
-#define REPORT_SIZE_MOUSE	     5 /* bytes */
-#define REPORT_SIZE_MOUSE_BOOT	 3 /* bytes */
-#define REPORT_SIZE_KEYBOARD	 9 /* bytes */
+#define REPORT_SIZE_MOUSE        5 /* bytes */
+#define REPORT_SIZE_MOUSE_BOOT   3 /* bytes */
+#define REPORT_SIZE_KEYBOARD     9 /* bytes */
 #define REPORT_SIZE_KEYBOARD_OUT 1 /* bytes */
-#define REPORT_SIZE_USER_CONFIG	 5 /* bytes */
+#define REPORT_SIZE_USER_CONFIG  5 /* bytes */
 
 #define REPORT_ID_MOUSE          0x01
 #define REPORT_ID_KEYBOARD       0x02
