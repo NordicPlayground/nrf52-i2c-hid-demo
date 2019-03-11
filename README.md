@@ -1,6 +1,7 @@
 nrf52-i2c-hid-demo
 =============================
 This demo implements the Peripheral-side HID over I2C protocol as specified in [HID Over I2C Protocol Specification](https://technet.microsoft.com/en-us/windows/dn642101(v=vs.60)#MainContent). 
+
 HID over I2C is a specification that lets an I2C device appear as a HID Device such as a mouse and keyboard to a Host device.
 This demo uses a Report Descriptor that enumerates as a mouse + keyboard composite device. 
 
@@ -13,13 +14,16 @@ Requirements
 
 Firmware setup
 --------------
-Clone or download the git repo, and place the nrf52-i2c-hid-demo folder in the following SDK subfolder: nRF5_SDK_15.3.0_59ac345\examples\peripheral
+Clone or download the git repo, and place the nrf52-i2c-hid-demo folder in the following SDK subfolder: **nRF5_SDK_15.3.0_59ac345\examples\peripheral**.
+
 Build the firmware using either GCC or SES, and flash the firmware using for example nrfjprog.
 
 Example of using GCC to build the PCA10040 (nRF52832) target:
+'''
 $ cd nRF5_SDK_15.3.0_59ac345\examples\peripheral\nrf52-i2c-hid-demo\pca10040\blank\armgcc
 $ make nrf52832_xxaa
 $ nrfjprog --program _build\nrf52832_xxaa.hex --chiperase --reset
+'''
 
 
 Hardware setup
@@ -36,20 +40,24 @@ Connect the GPIOs to the corresponding host pins. Note that long wires or too st
 
 This repo contains an example for building and configuring AOSP as the HID over I2C Host [here](Android/HiKey_AOSP_HID-Over-I2C_README.md).
 
-This firmware has also been tested with Raspbian Stretch on Raspberry Pi 3, but the build files are not put in this repo yet. 
+This firmware has also been tested with Raspbian Stretch on Raspberry Pi 3, but the build files are not put in this repo yet (the same Kernel option is used with Raspian, and the .dts overlay is almost identical).
 
 
 Firmware behavior
 -----------------
-The firmware uses UART printouts to provide debugging information. PCA10040 and PCA10056 will enumerate as a COM port when connected to USB. Use any serial port reader (for example Putty) to connect to this COM port with 115200/8-N-1, and no flow control (this is the default Putty configuration).
+The firmware uses UART printouts to provide debugging information. 
+PCA10040 and PCA10056 will enumerate as a COM port when connected to USB. Use any serial port reader (for example Putty) to connect to this COM port with 115200/8-N-1, and no flow control (this is the default Putty configuration).
 
 When the Host enumerates HID Devices on the I2C bus, you will typically see the following printout:
-> <info> app: I2C_HID_EVT_TYPE_REQ_SET_POWER: ON
-> <info> app: I2C_HID_EVT_TYPE_REQ_RESET
+'''
+<info> app: I2C_HID_EVT_TYPE_REQ_SET_POWER: ON
+<info> app: I2C_HID_EVT_TYPE_REQ_RESET
+'''
 
 The demo uses Buttons 1 to 4 on the DK to do the following:
+
 | Button   | Function                                                                 |
-|:---------|--------------------------------------------------------------------------|
+|:--------:| ------------------------------------------------------------------------ |
 | Button 1 | Send one Mouse Input Report                                              |
 | Button 2 | Send one Keyboard Input Report                                           |
 | Button 3 | Toggle continous transmission of Keyboard Input Reports (default: 10 Hz) |
@@ -68,14 +76,16 @@ This demo does not use a SoftDevice. There are no limitations for adding a SoftD
 HID Descriptors
 ---------------
 The HID Descriptor and Report Descriptor is defined in [i2c_hid_descriptors.h](nrf52-i2c-hid-demo/i2c_hid_descriptors.h).
+
 To use a different Report Descriptor, the I2C_HID_REPORT_DESCRIPTOR define should be updated.
+
 Furthermore, I2C_HID_INPUT_REPORT_LIST, I2C_HID_OUTPUT_REPORT_LIST, and I2C_HID_FEATURE_REPORT_LIST must be manually populated with the Report IDs and Report sizes that are defined in the report descriptor. Leave the list empty if there are no Reports of a given type. 
 
 
 Notes and limitations
 ---------------------
 - The nRF52 firmware will by default configure the SDA and SCL pins without a pull resistor, assuming that the I2S bus has pull-up resistors already. 
-- The Report Descriptor is limited to 255 bytes in length on the nRF52832. The nRF52810 and nRF52840 SoCs can have larger I2S buffers, but for simplicity this demo enforces the 255 byte limit for all hardware targets. 
+- The Report Descriptor is limited to 255 bytes in length on the nRF52832. The nRF52810 and nRF52840 SoCs can have larger TWIS buffers, but for simplicity this demo enforces the 255 byte limit for all hardware targets. 
 - All Reports must have an explicit Report ID in the Report Descriptor, even if there is only one Report of a given type. The Report ID must be in the range of 1-15. In other words, the third ID byte in HID over I2C Specification is not currently supported. 
 
 
