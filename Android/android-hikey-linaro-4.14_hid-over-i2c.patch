@@ -1,0 +1,23 @@
+diff --git a/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts b/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts
+index cdc3d1e85c89..992e41676aa2 100644
+--- a/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts
++++ b/arch/arm64/boot/dts/hisilicon/hi6220-hikey.dts
+@@ -267,7 +267,18 @@
+ 		};
+ 
+ 		i2c0: i2c@f7100000 {
++			clock-frequency = <400000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
+ 			status = "ok";
++			i2c_hid: i2c-hid-dev@0a {
++				compatible = "hid-over-i2c";
++				reg = <0x0a>;
++				status = "ok";
++				hid-descr-addr = <0x0001>;
++				interrupt-parent = <&gpio2>;
++				interrupts = <1 0x8>;
++			};
+ 		};
+ 
+ 		i2c1: i2c@f7101000 {
