@@ -19,11 +19,11 @@ Clone or download the git repo, and place the nrf52-i2c-hid-demo folder in the f
 Build the firmware using either GCC or SES, and flash the firmware using for example nrfjprog.
 
 Example of using GCC to build the PCA10040 (nRF52832) target:
-'''
+```
 $ cd nRF5_SDK_15.3.0_59ac345\examples\peripheral\nrf52-i2c-hid-demo\pca10040\blank\armgcc
 $ make nrf52832_xxaa
 $ nrfjprog --program _build\nrf52832_xxaa.hex --chiperase --reset
-'''
+```
 
 
 Hardware setup
@@ -49,10 +49,10 @@ The firmware uses UART printouts to provide debugging information.
 PCA10040 and PCA10056 will enumerate as a COM port when connected to USB. Use any serial port reader (for example Putty) to connect to this COM port with 115200/8-N-1, and no flow control (this is the default Putty configuration).
 
 When the Host enumerates HID Devices on the I2C bus, you will typically see the following printout:
-'''
+```
 <info> app: I2C_HID_EVT_TYPE_REQ_SET_POWER: ON
 <info> app: I2C_HID_EVT_TYPE_REQ_RESET
-'''
+```
 
 The demo uses Buttons 1 to 4 on the DK to do the following:
 
