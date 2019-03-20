@@ -161,13 +161,6 @@ static void drv_i2c_hid_evt_handler(drv_i2c_hid_evt_t const * p_evt)
             {
                 i2c_hid_input_report_msg_t * p_input_rep;
 
-                if (m_pending_cmd == I2C_HID_CMD_TYPE_RESET)
-                {
-                    APP_ERROR_CHECK_BOOL(false);
-                    APP_ERROR_CHECK_BOOL(nrf_atomic_u32_fetch_store(&m_pending_cmd, I2C_HID_CMD_TYPE_NONE) == I2C_HID_CMD_TYPE_RESET);
-                    NRF_LOG_DEBUG("Reset reply sent");
-                }
-
                 APP_ERROR_CHECK(nrf_queue_pop(&m_input_rep_queue, &p_input_rep));
                 nrf_balloc_free(&m_input_rep_pool, p_input_rep);
 
