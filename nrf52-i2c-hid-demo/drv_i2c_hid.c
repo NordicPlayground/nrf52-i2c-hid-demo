@@ -253,11 +253,6 @@ ret_code_t drv_i2c_hid_read_buf_set(void const * p_buf, size_t size)
     return err_code;
 }
 
-bool drv_i2c_hid_interrupt_asserted(void)
-{
-    return (nrf_gpio_pin_out_read(DRV_I2C_HID_GPIO_INT) == 0x00);
-}
-
 void drv_i2c_hid_interrupt_assert(void)
 {
     nrf_gpio_pin_clear(DRV_I2C_HID_GPIO_INT);

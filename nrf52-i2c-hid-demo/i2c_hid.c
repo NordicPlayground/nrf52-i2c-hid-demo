@@ -59,14 +59,6 @@ NRF_LOG_MODULE_REGISTER();
 #define I2C_HID_EVT_INT_PRIO I2C_HID_EVT_INT_PRIO_DEFAULT
 #endif
 
-#ifndef I2C_HID_INT_ALWAYS_EDGE_TRIGGER
-#define I2C_HID_INT_ALWAYS_EDGE_TRIGGER I2C_HID_INT_ALWAYS_EDGE_TRIGGER_DEFAULT
-#endif
-
-#ifndef I2C_HID_INT_REASSERT_DELAY_US
-#define I2C_HID_INT_REASSERT_DELAY_US I2C_HID_INT_REASSERT_DELAY_US_DEFAULT
-#endif
-
 const static uint8_t m_hid_report_descriptor[] = {I2C_HID_REPORT_DESCRIPTOR};
 
 STATIC_ASSERT(sizeof(m_hid_report_descriptor) <= 255); // Maximum size of TWIS DMA buffer
@@ -112,12 +104,13 @@ static i2c_hid_evt_handler_t m_evt_handler;
 static nrfx_swi_t            m_swi_inst;
 static nrf_atomic_u32_t      m_pending_cmd;
 static nrf_atomic_flag_t     m_cmd_reply_buf_set;
+static nrf_atomic_flag_t     m_int_asserted;
 static nrf_atomic_flag_t     m_i2c_read_buf_waiting;
 
 // Generic buffer used for incoming writes and all outgoing reads except Input Reports
 static uint8_t m_i2c_buf_generic[MAX(sizeof(m_hid_report_descriptor), sizeof(i2c_hid_descriptor_t))]; // TODO: Verify that size is also large enough for Requests. Usually Report Descriptor is a lot larger
 
-void drv_i2c_hid_evt_handler(drv_i2c_hid_evt_t const * p_evt)
+static void drv_i2c_hid_evt_handler(drv_i2c_hid_evt_t const * p_evt)
 {
     switch (p_evt->type)
     {
@@ -134,14 +127,14 @@ void drv_i2c_hid_evt_handler(drv_i2c_hid_evt_t const * p_evt)
                 if (nrf_atomic_flag_clear_fetch(&m_cmd_reply_buf_set) != 0)
                 {
                     // Buffer is already prepared for reply
-                    drv_i2c_hid_read_buf_set(m_i2c_buf_generic, sizeof(m_i2c_buf_generic));
+                    APP_ERROR_CHECK(drv_i2c_hid_read_buf_set(m_i2c_buf_generic, sizeof(m_i2c_buf_generic)));
                 }
                 else
                 {
                     nrf_atomic_flag_set(&m_i2c_read_buf_waiting);
                 }
             }
-            else if (drv_i2c_hid_interrupt_asserted())
+            else if (m_int_asserted)
             {
                 i2c_hid_input_report_msg_t * p_input_rep;
 
@@ -150,23 +143,27 @@ void drv_i2c_hid_evt_handler(drv_i2c_hid_evt_t const * p_evt)
 
                 APP_ERROR_CHECK(nrf_queue_peek(&m_input_rep_queue, &p_input_rep));
 
-                drv_i2c_hid_read_buf_set(p_input_rep->value, sizeof(p_input_rep->value));
+                APP_ERROR_CHECK(drv_i2c_hid_read_buf_set(p_input_rep->value, sizeof(p_input_rep->value)));
+                // De-assert interrupt pin to avoid double-read by Host
+                drv_i2c_hid_interrupt_deassert();
             }
             else
             {
                 NRF_LOG_WARNING("Unexpected read"); // Appears to happen during module init on host side to see if I2C slave ACKs
-                drv_i2c_hid_read_buf_set(m_i2c_buf_generic, sizeof(m_i2c_buf_generic));
+                memset(m_i2c_buf_generic, 0, (I2C_HID_MAX_SIZE_INPUT_REPORT + 3));
+                APP_ERROR_CHECK(drv_i2c_hid_read_buf_set(m_i2c_buf_generic, sizeof(m_i2c_buf_generic)));
             }
         } break;
 
         case DRV_I2C_HID_EVT_TYPE_READ_DONE:
         {
-            if (drv_i2c_hid_interrupt_asserted() && m_pending_cmd == I2C_HID_CMD_TYPE_NONE)
+            if (m_int_asserted && m_pending_cmd == I2C_HID_CMD_TYPE_NONE)
             {
                 i2c_hid_input_report_msg_t * p_input_rep;
 
                 if (m_pending_cmd == I2C_HID_CMD_TYPE_RESET)
                 {
+                    APP_ERROR_CHECK_BOOL(false);
                     APP_ERROR_CHECK_BOOL(nrf_atomic_u32_fetch_store(&m_pending_cmd, I2C_HID_CMD_TYPE_NONE) == I2C_HID_CMD_TYPE_RESET);
                     NRF_LOG_DEBUG("Reset reply sent");
                 }
@@ -176,16 +173,12 @@ void drv_i2c_hid_evt_handler(drv_i2c_hid_evt_t const * p_evt)
 
                 if (nrf_queue_is_empty(&m_input_rep_queue))
                 {
-                    drv_i2c_hid_interrupt_deassert();
+                    APP_ERROR_CHECK_BOOL(nrf_atomic_flag_clear_fetch(&m_int_asserted) != 0);
                 }
-#if I2C_HID_INT_ALWAYS_EDGE_TRIGGER
                 else
                 {
-                    drv_i2c_hid_interrupt_deassert();
-                    nrf_delay_us(I2C_HID_INT_REASSERT_DELAY_US);
                     drv_i2c_hid_interrupt_assert();
                 }
-#endif /* I2C_HID_INT_ALWAYS_EDGE_TRIGGER */
             }
             else if (nrf_atomic_u32_fetch_store(&m_pending_cmd, I2C_HID_CMD_TYPE_NONE) != I2C_HID_CMD_TYPE_NONE)
             {
@@ -315,6 +308,7 @@ static i2c_hid_internal_cmd_type_t i2c_hid_cmd_fetch_set_pending(i2c_hid_interna
 
     if(cmd != I2C_HID_CMD_TYPE_NONE)
     {
+        nrf_atomic_flag_clear(&m_int_asserted);
         drv_i2c_hid_interrupt_deassert();
     }
 
@@ -429,6 +423,7 @@ static void i2c_hid_req_reset(uint8_t const * p_val, size_t len)
     nrf_queue_reset(&m_input_rep_queue);
     nrf_balloc_init(&m_input_rep_pool);
 
+    nrf_atomic_flag_clear(&m_int_asserted);
     drv_i2c_hid_interrupt_deassert();
 
     APP_ERROR_CHECK(i2c_hid_evt_issue(I2C_HID_EVT_TYPE_REQ_RESET, 0, 0, 0, 0, 0));
@@ -651,6 +646,7 @@ ret_code_t i2c_hid_init(i2c_hid_evt_handler_t evt_handler)
     m_evt_handler             = evt_handler;
     m_pending_cmd             = I2C_HID_CMD_TYPE_NONE;
     m_cmd_reply_buf_set       = 0;
+    m_int_asserted            = 0;
     m_i2c_read_buf_waiting    = 0;
 
     nrf_queue_reset(&m_input_rep_queue);
@@ -703,6 +699,7 @@ ret_code_t i2c_hid_req_reset_reply(void)
 
     DRV_I2C_HID_CRITICAL_SECTION_BEGIN();
     APP_ERROR_CHECK(nrf_queue_push(&m_input_rep_queue, &p_reset_rep));
+    nrf_atomic_flag_set(&m_int_asserted);
     drv_i2c_hid_interrupt_assert();
     DRV_I2C_HID_CRITICAL_SECTION_END();
 
@@ -768,6 +765,7 @@ ret_code_t i2c_hid_input_report_send(uint8_t * p_rep_value, uint16_t length, uin
 
     DRV_I2C_HID_CRITICAL_SECTION_BEGIN();
     APP_ERROR_CHECK(nrf_queue_push(&m_input_rep_queue, &p_inp_rep));
+    nrf_atomic_flag_set(&m_int_asserted);
     drv_i2c_hid_interrupt_assert();
     DRV_I2C_HID_CRITICAL_SECTION_END();
 

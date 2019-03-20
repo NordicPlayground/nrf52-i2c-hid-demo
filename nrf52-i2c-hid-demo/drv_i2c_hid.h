@@ -136,7 +136,6 @@ typedef void (*drv_i2c_hid_evt_handler_t)(drv_i2c_hid_evt_t const * p_evt);
 ret_code_t drv_i2c_hid_init(drv_i2c_hid_evt_handler_t evt_handler);
 ret_code_t drv_i2c_hid_write_buf_set(void * p_buf, size_t size);
 ret_code_t drv_i2c_hid_read_buf_set(void const * p_buf, size_t size);
-bool drv_i2c_hid_interrupt_asserted(void);
 void drv_i2c_hid_interrupt_assert(void);
 void drv_i2c_hid_interrupt_deassert(void);
 

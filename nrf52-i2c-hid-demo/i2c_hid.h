@@ -62,9 +62,6 @@
 
 #define I2C_HID_EVT_INT_PRIO_DEFAULT         7 /* Default priority used for event callbacks */
 
-#define I2C_HID_INT_ALWAYS_EDGE_TRIGGER_DEFAULT 1 /* Assume that interrupt is always edge triggered. I.e. when more than one Input Report is enqueued, deassert and reassert interupt line */
-#define I2C_HID_INT_REASSERT_DELAY_US_DEFAULT   5 /* When interrupt is reasserted, delay this long between the deassert and assert */
-
 typedef enum
 {
     I2C_HID_EVT_OUTPUT_REP,          /* Output Report received from Host */

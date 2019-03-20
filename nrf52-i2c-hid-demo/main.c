@@ -215,12 +215,15 @@ static void keyboard_input_report_send(void)
     {
         keyboard_report_encode(keyboard_input_rep, 0x00, 0x00);
         err_code = i2c_hid_input_report_send(keyboard_input_rep, sizeof(keyboard_input_rep), REPORT_ID_KEYBOARD); // Key release
-        if (err_code != NRF_SUCCESS)
+        if (err_code == NRF_SUCCESS)
+        {
+            m_key_code_idx += 1;
+            m_key_code_idx %= ARRAY_SIZE(m_key_codes);
+        }
+        else
         {
             NRF_LOG_WARNING("Failed to send keyboard Input Report because 0x%08X", err_code);
         }
-        m_key_code_idx += 1;
-        m_key_code_idx %= ARRAY_SIZE(m_key_codes);
     }
     else
     {
