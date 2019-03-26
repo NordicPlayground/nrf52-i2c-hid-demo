@@ -9,7 +9,7 @@ Requirements
 ------------
 - nRF5 SDK version 15.3.0
 - nRF52-DK (PCA10040) or nRF52840-DK (PCA10056)
-- HID over I2C Host such as [HiKey (LeMaker)](https://www.96boards.org/product/hikey/)
+- HID over I2C Host such as [HiKey (LeMaker)](https://www.96boards.org/product/hikey/) or [Raspberry Pi 3](https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/)
 
 
 Firmware setup
@@ -38,9 +38,7 @@ The default nRF52 GPIO configuration is as follows:
 
 Connect the GPIOs to the corresponding host pins. Note that long wires or too strong pull resistors could cause transmission errors or limit the SCL speed.
 
-This repo contains an example for building and configuring AOSP as the HID over I2C Host [here](Android/HiKey_AOSP_HID-Over-I2C_README.md).
-
-This firmware has also been tested with Raspbian Stretch on Raspberry Pi 3, but the build files are not put in this repo yet (the same Kernel option is used with Raspian, and the .dts overlay is almost identical).
+This repo contains an example for building and configuring **AOSP** as the HID over I2C Host [here](Android/HiKey_AOSP_HID-Over-I2C_README.md), and an example for configure a **Rasperry Pi 3** as the HID over I2C Host [here](Raspbian/Raspbian_HID-Over-I2C_README.md).
 
 
 Firmware behavior
@@ -77,9 +75,9 @@ HID Descriptors
 ---------------
 The HID Descriptor and Report Descriptor is defined in [i2c_hid_descriptors.h](nrf52-i2c-hid-demo/i2c_hid_descriptors.h).
 
-To use a different Report Descriptor, the I2C_HID_REPORT_DESCRIPTOR define should be updated.
+To use a different Report Descriptor, the **I2C_HID_REPORT_DESCRIPTOR** define should be updated.
 
-Furthermore, I2C_HID_INPUT_REPORT_LIST, I2C_HID_OUTPUT_REPORT_LIST, and I2C_HID_FEATURE_REPORT_LIST must be manually populated with the Report IDs and Report sizes that are defined in the report descriptor. Leave the list empty if there are no Reports of a given type. 
+Furthermore, **I2C_HID_INPUT_REPORT_LIST**, **I2C_HID_OUTPUT_REPORT_LIST**, and **I2C_HID_FEATURE_REPORT_LIST** must be manually populated with the Report IDs and Report sizes that are defined in the report descriptor. Leave the list empty if there are no Reports of a given type. 
 
 
 Notes and limitations
