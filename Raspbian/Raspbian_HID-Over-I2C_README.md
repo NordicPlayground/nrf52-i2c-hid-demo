@@ -25,10 +25,12 @@ git clone https://github.com/raspberrypi/tools ~/tools
 echo PATH=\$PATH:~/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin >> ~/.bashrc
 source ~/.bashrc
 ```
-5. Download Kernel sources using the version found in step 1. This example uses v4.14.98:
+5. Download Kernel sources using the version found in step 1 and generate default config. This example uses v4.14.98. NOTE: The *_defconfig command is slightly different if you are using Pi 1, Pi Zero, Pi Zero W, or Compute Module. See [here](https://www.raspberrypi.org/documentation/linux/kernel/building.md) for details.
 ```
 git clone --depth=1 https://github.com/raspberrypi/linux --branch rpi-4.14.y
 cd linux
+KERNEL=kernel7
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
 ```
 6. Copy *i2c_hid-bcm2708-overlay.dts* from this repo into the downloaded kernel tree and manually compile it:
 ```
